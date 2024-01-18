@@ -1,0 +1,29 @@
+import os
+
+os.environ["OPENAI_API_KEY"] = "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"
+
+from langchain.chat_models import ChatOpenAI
+from langchain.llms import OpenAI
+from langchain.agents import load_tools, initialize_agent
+from langchain.agents import AgentType
+
+# Set up ChatOpenAI model
+llm = ChatOpenAI(temperature=0.0)
+
+# Set up OpenAI LLM (Language Model)
+math_llm = OpenAI(temperature=0.0)
+
+# Load tools (e.g., "human" and "llm-math")
+tools = load_tools(["human", "llm-math"], llm=math_llm)
+
+# Initialize LangChain agent
+agent_chain = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+)
+
+# Run a sample query
+response = agent_chain.run("What is the capital of France?")
+print("Response:", response)
