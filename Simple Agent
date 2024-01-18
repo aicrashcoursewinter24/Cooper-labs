@@ -1,0 +1,24 @@
+from transformers import pipeline, set_seed
+
+# Set up the pipeline for conversational AI
+generator = pipeline('text-generation', model='gpt2')
+
+# Seed for reproducibility
+set_seed(42)
+
+# Define a conversation
+conversation = [
+    {'role': 'system', 'content': 'You are a helpful assistant.'},
+    {'role': 'user', 'content': 'Tell me a Joke'}
+]
+
+# Extract the text from each message in the conversation
+conversation_text = [message['content'] for message in conversation]
+
+# Now, pass conversation_text to the generator pipeline
+response = generator(conversation_text)
+
+print(response)
+
+# Print the assistant's reply
+#print(response[0]['text'].strip())
