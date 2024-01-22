@@ -1,0 +1,44 @@
+from transformers import GPT2Model, GPT2Tokenizer, pipeline
+
+# Load GPT-2 model and tokenizer
+model_name = "gpt2"
+model = GPT2Model.from_pretrained(model_name)
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+# Define a function to embed text using GPT-2
+def embed_text(text):
+    inputs = tokenizer(text, return_tensors="pt")
+    outputs = model(**inputs)
+    embeddings = outputs.last_hidden_state.mean(dim=1).squeeze().detach().numpy()
+    return embeddings
+
+# Define a function for similarity search using cosine similarity
+def cosine_similarity(embedding1, embedding2):
+    dot_product = sum(embedding1 * embedding2)
+    magnitude1 = sum(embedding1 ** 2) ** 0.5
+    magnitude2 = sum(embedding2 ** 2) ** 0.5
+    similarity = dot_product / (magnitude1 * magnitude2)
+    return similarity
+
+# Embed the texts
+texts = [
+    "The Amanita phalloides has a large and imposing epigeous (aboveground) fruiting body (basidiocarp).",
+    "A mushroom with a large fruiting body is the Amanita phalloides. Some varieties are all-white.",
+    "A. phalloides, a.k.a Death Cap, is one of the most poisonous of all known mushrooms.",
+    "Tell me about all-white mushrooms with large fruiting bodies",
+]
+
+embeddings = [embed_text(text) for text in texts]
+
+# Perform similarity search
+question_embedding = embed_text("Tell me about all-white mushrooms with large fruiting bodies")
+
+similarities = [(i, cosine_similarity(question_embedding, emb)) for i, emb in enumerate(embeddings)]
+similarities.sort(key=lambda x: x[1], reverse=True)
+
+# Print the results
+print("Similarity Search Results:")
+for idx, sim in similarities[:2]:
+    print(f"Text {idx + 1}: {texts[idx]}")
+    print(f"Cosine Similarity: {sim}")
+    print("=" * 50)
