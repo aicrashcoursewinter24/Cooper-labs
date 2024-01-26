@@ -1,0 +1,31 @@
+import pandas as pd
+from transformers import pipeline, RagTokenizer, RagRetriever
+
+# Load your IMDb dataset in TSV format (replace 'your_imdb_dataset.tsv' with your actual file)
+imdb_df = pd.read_csv('name.basics.tsv', delimiter='\t')
+
+# Extract relevant information for indexing
+documents = [{'text': f"{row['Title']} {row['Description']}", 'title': row['Title']} for _, row in imdb_df.iterrows()]
+
+# Initialize RAG pipeline
+generator = pipeline('text-generation', model='facebook/rag-token-base')
+tokenizer = RagTokenizer.from_pretrained('facebook/rag-token-base')
+retriever = RagRetriever(index_name='exact', documents=documents)
+
+# Define a conversation
+conversation = [
+    {'role': 'system', 'content': 'You are a helpful assistant.'},
+    {'role': 'user', 'content': 'Tell me about movies with Tom Hanks.'}
+]
+
+# Preprocess conversation
+input_ids = tokenizer.encode(conversation[-1]['content'], return_tensors='pt')
+
+# Retrieve relevant documents
+docs = retriever.retrieve(' '.join(conversation))
+
+# Generate response
+output = generator(input_ids, docs=docs['text'])
+
+# Print the assistant's reply
+print(output[0]['generated']['text'].strip())
